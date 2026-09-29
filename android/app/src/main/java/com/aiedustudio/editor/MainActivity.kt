@@ -139,6 +139,16 @@ private fun StudioApp() {
                         }
                         TextButton(onClick={clips=clips.map { if(it.id==clip.id) it.copy(durationMs=(it.durationMs-1000).coerceAtLeast(1000),trimEndMs=(it.trimEndMs-1000).coerceAtLeast(1000)) else it };status="Duration adjusted"}) { Text("−1s") }
                         TextButton(onClick={clips=clips.map { if(it.id==clip.id) it.copy(durationMs=it.durationMs+1000,trimEndMs=it.trimEndMs+1000) else it };status="Duration adjusted"}) { Text("+1s") }
+                        IconButton(onClick={
+                            val i=clips.indexOfFirst { it.id==clip.id }
+                            if(i>0) clips=clips.toMutableList().apply { add(i-1, removeAt(i)) }
+                            status="Clip moved earlier"
+                        }, enabled=clips.indexOfFirst { it.id==clip.id }>0) { Icon(Icons.Default.KeyboardArrowUp,null,tint=Color.White) }
+                        IconButton(onClick={
+                            val i=clips.indexOfFirst { it.id==clip.id }
+                            if(i>=0 && i<clips.lastIndex) clips=clips.toMutableList().apply { add(i+1, removeAt(i)) }
+                            status="Clip moved later"
+                        }, enabled=clips.indexOfFirst { it.id==clip.id } in 0 until clips.lastIndex) { Icon(Icons.Default.KeyboardArrowDown,null,tint=Color.White) }
                         IconButton(onClick={clips=clips.filterNot { it.id==clip.id };if(selected==clip.id) selected=null}) { Icon(Icons.Default.Delete,null,tint=Color(0xFFFF7777)) }
                     }
                 }
