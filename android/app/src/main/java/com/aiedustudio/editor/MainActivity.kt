@@ -173,7 +173,7 @@ private fun StudioApp() {
                             "AI Tools" -> status="AI services are not connected yet; manual edit remains available"
                             "Export" -> status="Media3 Transformer dependency included; render/export pipeline is not yet wired"
                         }
-                    }) { Text(tool) }
+                    }, label = { Text(tool) })
                 }
             }
             Text(status, color=Color(0xFF9AA4B2), style=MaterialTheme.typography.labelSmall, modifier=Modifier.padding(top=6.dp))
