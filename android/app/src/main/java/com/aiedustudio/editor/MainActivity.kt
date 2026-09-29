@@ -6,6 +6,8 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import coil.compose.AsyncImage
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.horizontalScroll
@@ -94,7 +96,8 @@ private fun StudioApp() {
             }
             Spacer(Modifier.height(10.dp))
             Box(Modifier.fillMaxWidth().weight(0.47f).background(Color.Black, RoundedCornerShape(12.dp)), contentAlignment = Alignment.Center) {
-                if (active?.kind == "VIDEO") AndroidView(factory = { PlayerView(it).apply { player = player; useController = false } }, modifier = Modifier.fillMaxSize())
+                if (active?.kind == "VIDEO") AndroidView(factory = { PlayerView(it).apply { this.player = player; useController = false } }, modifier = Modifier.fillMaxSize())
+                else if (active?.kind == "IMAGE") AsyncImage(model = Uri.parse(active.uri), contentDescription = active.label, contentScale = ContentScale.Fit, modifier = Modifier.fillMaxSize())
                 else Column(horizontalAlignment = Alignment.CenterHorizontally) {
                     Icon(Icons.Default.Movie, null, tint = Color(0xFF62D9B5), modifier = Modifier.size(44.dp))
                     Text(active?.label ?: "Import media to begin", color = Color.White)
@@ -150,7 +153,13 @@ private fun StudioApp() {
                             "Trim in" -> if(c!=null) { clips=clips.map { if(it.id==c.id) it.copy(trimStartMs=(it.trimStartMs+500).coerceAtMost(it.trimEndMs-500)) else it }; status="Trim-in moved by 0.5s" }
                             "Trim out" -> if(c!=null) { clips=clips.map { if(it.id==c.id) it.copy(trimEndMs=(it.trimEndMs-500).coerceAtLeast(it.trimStartMs+500)) else it }; status="Trim-out moved by 0.5s" }
                             "Text" -> status="Text overlay editing is the next module"
-                            "Quiz" -> status="Quiz workflow foundation: select imported images, then configure timing in next iteration"
+                            "Quiz" -> {
+                                val imgs = clips.filter { it.kind == "IMAGE" }
+                                if (imgs.isNotEmpty()) {
+                                    clips = clips.map { if (it.kind == "IMAGE") it.copy(durationMs = 5000, trimStartMs = 0, trimEndMs = 5000) else it }
+                                    status = "Quiz sequence prepared: ${imgs.size} image cards • 5s each. Cards remain editable."
+                                } else status = "Import images first to prepare a quiz sequence"
+                            }
                             "AI Tools" -> status="AI services are not connected yet; manual edit remains available"
                             "Export" -> status="Media3 Transformer dependency included; render/export pipeline is not yet wired"
                         }
